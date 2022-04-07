@@ -1,6 +1,8 @@
-import { Body, Controller, HttpCode, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { FilesService } from './files.service';
+import { Body, Controller, Get, HttpCode, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { path } from 'app-root-path';
+import { Response } from 'express';
+import { FilesService } from './files.service';
 import { FileElementResponse } from './dto/file-element.response';
 import { MFile } from './mfile.class';
 import { TrackInfoDto } from './dto/tract-info.dto';
@@ -29,6 +31,17 @@ export class FilesController {
 		}
 	}
 
+	@Get('track/image/:author/:track')
+	async getTrackImage(
+		@Res() res: Response,
+		@Param('author') author: string,
+		@Param('track') track: string) {
+
+		res.set({'Content-Type': 'image/webp'});
+
+		return res.sendFile(`${path}/uploads/${author}/tracks/image/${track}.webp`);
+	}
+
 	@Post('track/audio')
 	@HttpCode(200)
 	@UseInterceptors(FileInterceptor('file'))
@@ -42,4 +55,17 @@ export class FilesController {
 			return this.filesService.saveTrackFile(saveFile, dto, 'audio', 'mp3');
 		}
 	}
+
+	@Get('track/audio/:author/:track')
+	async getTrackAudio(
+		@Res() res: Response,
+		@Param('author') author: string,
+		@Param('track') track: string) {
+
+		res.set({'Content-Type': 'audio/mpeg'});
+
+		return res.sendFile(`${path}/uploads/${author}/tracks/audio/${track}.mp3`);
+	}
 }
+
+
