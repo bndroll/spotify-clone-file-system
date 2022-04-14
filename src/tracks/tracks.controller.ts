@@ -1,25 +1,25 @@
 import { Body, Controller, Get, HttpCode, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { TracksService } from './tracks.service';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { path } from 'app-root-path';
-import { Response } from 'express';
-import { FilesService } from './files.service';
-import { FileElementResponse } from './dto/file-element.response';
-import { MFile } from './mfile.class';
 import { TrackInfoDto } from './dto/tract-info.dto';
+import { FileElementResponse } from '../files/file-element.response';
+import { MFile } from '../files/mfile.class';
+import { Response } from 'express';
+import { path } from 'app-root-path';
 
 
-@Controller('files')
-export class FilesController {
+@Controller('tracks')
+export class TracksController {
 	constructor(
-		private readonly filesService: FilesService
+		private readonly tracksService: TracksService
 	) {
 	}
 
-	@Post('track/image')
+	@Post('image')
 	@HttpCode(200)
 	@UseInterceptors(FileInterceptor('file'))
 	async uploadTrackImage(@UploadedFile() file: Express.Multer.File, @Body() dto: TrackInfoDto): Promise<FileElementResponse> {
-		const buffer = await this.filesService.convertToWebP(file.buffer);
+		const buffer = await this.tracksService.convertToWebP(file.buffer);
 
 		if (file.mimetype.includes('image')) {
 			const saveFile: MFile = (new MFile({
@@ -27,22 +27,20 @@ export class FilesController {
 				buffer
 			}));
 
-			return this.filesService.saveTrackFile(saveFile, dto, 'image', 'webp');
+			return this.tracksService.saveTrackFile(saveFile, dto, 'image', 'webp');
 		}
 	}
 
-	@Get('track/image/:author/:track')
+	@Get('image/:author/:track')
 	async getTrackImage(
 		@Res() res: Response,
 		@Param('author') author: string,
 		@Param('track') track: string) {
 
-		res.set({'Content-Type': 'image/webp'});
-
-		return res.sendFile(`${path}/uploads/${author}/tracks/image/${track}.webp`);
+		return this.tracksService.sendTrackFile(res, {authorName: author, trackTitle: track}, 'image');
 	}
 
-	@Post('track/audio')
+	@Post('audio')
 	@HttpCode(200)
 	@UseInterceptors(FileInterceptor('file'))
 	async uploadTrackAudio(@UploadedFile() file: Express.Multer.File, @Body() dto: TrackInfoDto): Promise<FileElementResponse> {
@@ -52,20 +50,16 @@ export class FilesController {
 				buffer: file.buffer
 			}));
 
-			return this.filesService.saveTrackFile(saveFile, dto, 'audio', 'mp3');
+			return this.tracksService.saveTrackFile(saveFile, dto, 'audio', 'mp3');
 		}
 	}
 
-	@Get('track/audio/:author/:track')
+	@Get('audio/:author/:track')
 	async getTrackAudio(
 		@Res() res: Response,
 		@Param('author') author: string,
 		@Param('track') track: string) {
 
-		res.set({'Content-Type': 'audio/mpeg'});
-
-		return res.sendFile(`${path}/uploads/${author}/tracks/audio/${track}.mp3`);
+		return this.tracksService.sendTrackFile(res, {authorName: author, trackTitle: track}, 'audio');
 	}
 }
-
-
