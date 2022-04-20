@@ -18,7 +18,7 @@ export class AlbumsService {
 		await writeFile(`${uploadFolder}/${dto.title}.webp`, file.buffer);
 
 		return {
-			url: `${dto.authorName}/playlists/${dto.title}.webp`,
+			url: `${dto.authorName}/albums/${dto.title}.webp`,
 			name: `${dto.title}.webp`
 		};
 	}
